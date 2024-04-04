@@ -1,33 +1,21 @@
 "use client";
 
 import React, { useContext, useEffect, useState } from "react";
-import { MessageState } from "../types/data";
+import { MessageState, Rating } from "../types/data";
 import moment from "moment";
 
 // ICONS
 import { IoReload } from "react-icons/io5";
 import { MdContentCopy } from "react-icons/md";
-import { FiThumbsUp } from "react-icons/fi";
-import { FiThumbsDown } from "react-icons/fi";
-import { useChat } from "ai/react";
+import { MdOutlineThumbUp } from "react-icons/md";
+import { MdThumbUp } from "react-icons/md";
+import { MdOutlineThumbDown } from "react-icons/md";
+import { MdThumbDown } from "react-icons/md";
+import { Message, useChat } from "ai/react";
 import { ChatContext } from "../components/Provider";
 import { GoTrash } from "react-icons/go";
 
-interface Message {
-  role: string;
-  content: string;
-}
-
 const Chat = () => {
-  const saveMessage = (message: Message) => {
-    // const savedChats = localStorage.getItem("chat");
-    // let parsedChats = [];
-    // if (savedChats) parsedChats = JSON.parse(savedChats);
-    // parsedChats = [...parsedChats, message];
-    // localStorage.setItem("chat", JSON.stringify(parsedChats));
-    // console.log(messages);
-  };
-
   const getChatData = () => {
     const savedChats = localStorage.getItem("chat");
     let parsedChats = [];
@@ -38,12 +26,17 @@ const Chat = () => {
   const { messages, setMessages, input, handleInputChange, handleSubmit } =
     useChat({
       initialMessages: getChatData(),
-      onFinish: saveMessage,
     });
-
-  const [messageData, setMessageData] = useState<any>([]);
   const [checkedMessages, setCheckedMessages] = useState<string[]>([]);
-  const [chatData, setChatData] = useState<MessageState[]>([]);
+
+  const [selectedRatingType, setSelectedRatingType] = useState<
+    "like" | "dislike" | ""
+  >("");
+  const [ratingInput, setRatingInput] = useState<string>("");
+  const [ratings, setRatings] = useState<Rating[]>([]);
+  const [reviewedMessage, setReviewedMessage] = useState<Message>();
+
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const { chatState } = useContext(ChatContext);
 
@@ -69,66 +62,43 @@ const Chat = () => {
     setCheckedMessages([]);
   };
 
-  // const [input, setInput] = useState<string>("");
+  const submitRating = () => {
+    console.log("tes");
+    const rating = {
+      id: Math.floor(Math.random() * 100 + 1),
+      createdAt: new Date(),
+      messageId: reviewedMessage!.id,
+      type: selectedRatingType,
+      content: ratingInput,
+    };
+    setRatings((prevState) => [...prevState, rating]);
+  };
 
-  // const sendMessage = async (e: any) => {
-  //   e.preventDefault();
-  //   try {
-  //     const userMessage = {
-  //       id: Math.floor(Math.random() * 100 + 1),
-  //       createdAt: new Date(),
-  //       createdBy: "user",
-  //       message: input,
-  //     };
+  useEffect(() => {
+    const savedRatings = localStorage.getItem("ratings");
+    let parsedRatings = [];
+    if (savedRatings) parsedRatings = JSON.parse(savedRatings);
+    setRatings(parsedRatings);
 
-  //     setInput("");
-  //     setChatData((prevState) => [...prevState, userMessage]);
-
-  //     let chatStorage = localStorage.getItem("chat");
-  //     let parsedChatData: any = [userMessage];
-  //     if (chatStorage) {
-  //       parsedChatData = JSON.parse(chatStorage);
-  //       parsedChatData = [...parsedChatData, userMessage];
-  //     }
-
-  //     localStorage.setItem("chat", JSON.stringify(parsedChatData));
-  //     const response = await axios.post("/api/chat", {
-  //       messages: [{ role: "user", content: input }],
-  //     });
-
-  //     const botMessage = {
-  //       id: Math.floor(Math.random() * 100 + 1),
-  //       createdAt: new Date(),
-  //       createdBy: "bot",
-  //       message: response.data,
-  //     };
-
-  //     chatStorage = localStorage.getItem("chat");
-
-  //     setChatData((prevState) => [...prevState, botMessage]);
-  //     if (chatStorage) parsedChatData = JSON.parse(chatStorage);
-  //     parsedChatData = [...parsedChatData, botMessage];
-  //     localStorage.setItem("chat", JSON.stringify(parsedChatData));
-  //   } catch (error) {}
-  // };
-
-  //   const
-
-  // useEffect(() => {
-  //   const chatStorage = localStorage.getItem("chat");
-  //   if (chatStorage) setChatData(JSON.parse(chatStorage));
-  // }, []);
+    window.scrollTo(0, document.body.scrollHeight);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("chat", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
+    if (ratings.length)
+      localStorage.setItem("ratings", JSON.stringify(ratings));
+  }, [ratings]);
+
+  useEffect(() => {
     setCheckedMessages([]);
   }, [chatState]);
+
   return (
     <div className="bg-white min-h-[calc(100vh-64px)] pt-4 relative">
-      <div className="px-4 ">
+      <div className="px-4 pb-[88px]" style={{ overflowAnchor: "none" }}>
         <div className="flex justify-center">
           <div className="rounded-md bg-secondary p-2 mb-10">Today</div>
         </div>
@@ -208,11 +178,72 @@ const Chat = () => {
                     <span className="text-[10px]">
                       {moment(chat.createdAt).format("HH:mm")}
                     </span>{" "}
-                    <div className="flex justify-end w-full gap-x-2 mt-5">
-                      <IoReload />
-                      <MdContentCopy />
-                      <FiThumbsUp />
-                      <FiThumbsDown />
+                    <div className="flex justify-end items-center w-full gap-x-2 mt-5">
+                      {/* <IoReload /> */}
+                      <div
+                        className={`tooltip ${isCopied && "tooltip-open"}`}
+                        data-tip="Copied to clipboard"
+                      >
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(chat.content);
+                            setIsCopied(true);
+                            setTimeout(() => {
+                              setIsCopied(false);
+                            }, 1000);
+                          }}
+                        >
+                          <MdContentCopy />
+                        </button>
+                      </div>
+                      <button
+                        disabled={ratings.some(
+                          (rating) => rating.messageId === chat.id
+                        )}
+                        onClick={() => {
+                          setReviewedMessage(chat);
+                          setSelectedRatingType("like");
+                          (
+                            document.querySelector(
+                              "#modal--rating"
+                            )! as HTMLFormElement
+                          ).showModal();
+                        }}
+                      >
+                        {ratings.some(
+                          (rating) =>
+                            rating.messageId === chat.id &&
+                            rating.type === "like"
+                        ) ? (
+                          <MdThumbUp />
+                        ) : (
+                          <MdOutlineThumbUp />
+                        )}
+                      </button>
+                      <button
+                        disabled={ratings.some(
+                          (rating) => rating.messageId === chat.id
+                        )}
+                        onClick={() => {
+                          setReviewedMessage(chat);
+                          setSelectedRatingType("dislike");
+                          (
+                            document.querySelector(
+                              "#modal--rating"
+                            )! as HTMLFormElement
+                          ).showModal();
+                        }}
+                      >
+                        {ratings.some(
+                          (rating) =>
+                            rating.messageId === chat.id &&
+                            rating.type === "dislike"
+                        ) ? (
+                          <MdThumbDown />
+                        ) : (
+                          <MdOutlineThumbDown />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -248,7 +279,11 @@ const Chat = () => {
             )} */}
         </div>
       </div>
-      <div className="sticky bottom-0 bg-white flex justify-center w-full p-5">
+      <div
+        className="anchor"
+        style={{ overflowAnchor: "auto", height: "1px" }}
+      ></div>
+      <div className="absolute bottom-0 bg-white flex justify-center w-full p-5 h-[88px]">
         {chatState === "delete" ? (
           <div className="flex justify-between items-center w-full">
             <div className="flex items-center gap-x-1">
@@ -290,6 +325,81 @@ const Chat = () => {
         )}
       </div>
       <dialog id="modal--delete" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold mb-2">Hapus Chat</h3>
+          <p>
+            Kamu akan menghapus chat ini, chat yang telah dihapus tidak dapat
+            dipulihkan
+          </p>
+          <div className="modal-action">
+            <form method="dialog" className="w-full">
+              <div className="flex flex-col gap-y-5 w-full">
+                <button
+                  className="btn bg-second-orange text-white rounded-full"
+                  onClick={deleteMessage}
+                >
+                  Hapus Sekarang
+                </button>
+                <button className="cursor-pointer">Kembali</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </dialog>
+      <dialog id="modal--rating" className="modal">
+        <div className="modal-box">
+          <div className="flex justify-between mb-5">
+            <h3 className="font-bold mb-2">Rating</h3>
+            <form method="dialog">
+              <button>X</button>
+            </form>
+          </div>
+          <div className="flex flex-col items-center mb-5">
+            <div
+              className={`flex justify-center items-center rounded-full ${
+                selectedRatingType === "like"
+                  ? "bg-light-blue"
+                  : "bg-light-yellow"
+              } w-[50px] h-[50px] mb-3`}
+            >
+              {selectedRatingType === "like" ? (
+                <MdOutlineThumbUp size={25} color="#979CFF" />
+              ) : (
+                <MdOutlineThumbDown size={25} color="#FFC267" />
+              )}
+            </div>
+            <p className="font-bold text-center">
+              Kamu {selectedRatingType === "dislike" && "tidak"} menyukai
+              balasan AI
+            </p>
+            <p className="text-center">
+              Ceritakan pengalaman tentang balasan chat ini
+            </p>
+          </div>
+          <textarea
+            name=""
+            id=""
+            className="textarea w-full"
+            placeholder="Berikan tanggapanmu"
+            value={ratingInput}
+            onChange={(e) => setRatingInput(e.target.value)}
+          ></textarea>
+          <div className="modal-action">
+            <form method="dialog" onSubmit={submitRating} className="w-full">
+              <div className="flex flex-col gap-y-5 w-full">
+                <button
+                  className="btn bg-primary text-white rounded-full"
+                  disabled={!ratingInput}
+                  type="submit"
+                >
+                  Kirim
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </dialog>
+      <dialog id="modal--dislike" className="modal">
         <div className="modal-box">
           <h3 className="font-bold mb-2">Hapus Chat</h3>
           <p>

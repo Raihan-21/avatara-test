@@ -14,6 +14,10 @@ const config: Config = {
         secondary: "#EDEDED",
         orange: "#FF4E00",
         "second-orange": "#FE6052",
+        blue: "#979CFF",
+        "light-blue": "#F0F1FF",
+        yellow: "#FFC267",
+        "light-yellow": "#FFF6E9",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

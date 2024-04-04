@@ -5,4 +5,12 @@ interface MessageState {
   content: string;
 }
 
-export type { MessageState };
+interface Rating {
+  id: number;
+  messageId: string;
+  createdAt: Date;
+  type: string;
+  content: string;
+}
+
+export type { MessageState, Rating };

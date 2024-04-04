@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { MessageState } from "../types/data";
-import OutgoingBubble from "../components/Chat/OutgoingBubble";
 import Chat from "./Chat";
 
 export const runtime = "edge";
