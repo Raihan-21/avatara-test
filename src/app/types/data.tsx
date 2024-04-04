@@ -1,7 +1,8 @@
-interface Message {
+interface MessageState {
+  id: number;
   createdAt: Date;
   createdBy: string;
-  message: string;
+  content: string;
 }
 
-export type { Message };
+export type { MessageState };
