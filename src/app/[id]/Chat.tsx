@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { MessageState } from "../types/data";
-import axios from "axios";
 import moment from "moment";
 
 // ICONS
@@ -11,6 +10,7 @@ import { MdContentCopy } from "react-icons/md";
 import { FiThumbsUp } from "react-icons/fi";
 import { FiThumbsDown } from "react-icons/fi";
 import { useChat } from "ai/react";
+import { ChatContext } from "../components/Provider";
 
 interface Message {
   role: string;
@@ -41,6 +41,7 @@ const Chat = () => {
     });
 
   const [messageData, setMessageData] = useState<any>([]);
+  const [checkedMessages, setCheckedMessages] = useState<string[]>([]);
 
   const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     // const savedChats = localStorage.getItem("chat");
@@ -98,6 +99,9 @@ const Chat = () => {
   // };
 
   //   const
+
+  const { chatState } = useContext(ChatContext);
+
   useEffect(() => {
     const chatStorage = localStorage.getItem("chat");
     if (chatStorage) setChatData(JSON.parse(chatStorage));
@@ -112,26 +116,85 @@ const Chat = () => {
     localStorage.setItem("chat", JSON.stringify(messages));
   }, [messages]);
 
+  useEffect(() => {
+    console.log(checkedMessages);
+  }, [checkedMessages]);
+
   return (
     <div className="bg-white min-h-[calc(100vh-64px)] pt-4 relative">
       <div className="px-4 ">
         <div className="flex justify-center">
-          <div className="rounded-md bg-secondary p-2 mb-10">Today</div>
+          <div className="rounded-md bg-secondary p-2 mb-10">
+            Today {chatState}
+          </div>
         </div>
         <div className="space-y-2">
           {messages.length > 0 &&
             messages.map((chat, i) =>
               chat.role === "user" ? (
-                <div className="chat chat-end" key={i}>
+                <div className="chat chat-end items-end" key={i}>
                   <div className="chat-bubble bg-secondary text-black">
                     <span>{chat.content}</span>{" "}
                     <span className="text-[10px]">
                       {moment(chat.createdAt).format("HH:mm")}
                     </span>
                   </div>
+                  {chatState === "delete" && (
+                    <div>
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        value={chat.id}
+                        onChange={(e) => {
+                          const alreadyChecked = checkedMessages.find(
+                            (id) => id === e.target.value
+                          );
+                          if (alreadyChecked) {
+                            setCheckedMessages(
+                              checkedMessages.filter(
+                                (id) => id !== e.target.value
+                              )
+                            );
+                            return;
+                          }
+                          setCheckedMessages((prevState) => [
+                            ...prevState,
+                            e.target.value,
+                          ]);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="chat chat-start" key={i}>
+                <div className="chat chat-start items-end" key={i}>
+                  {" "}
+                  {chatState === "delete" && (
+                    <div>
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        value={chat.id}
+                        onChange={(e) => {
+                          const alreadyChecked = checkedMessages.find(
+                            (id) => id === e.target.value
+                          );
+                          if (alreadyChecked) {
+                            setCheckedMessages(
+                              checkedMessages.filter(
+                                (id) => id !== e.target.value
+                              )
+                            );
+                            return;
+                          }
+                          setCheckedMessages((prevState) => [
+                            ...prevState,
+                            e.target.value,
+                          ]);
+                        }}
+                      />
+                    </div>
+                  )}
                   <div className="chat-bubble bg-primary text-white">
                     <span>{chat.content}</span>{" "}
                     <span className="text-[10px]">
@@ -178,15 +241,30 @@ const Chat = () => {
         </div>
       </div>
       <div className="sticky bottom-0 bg-white flex justify-center w-full p-5">
-        <form onSubmit={sendMessage} className="w-full">
-          <input
-            type="text"
-            placeholder="Send message..."
-            value={input}
-            onChange={handleInputChange}
-            className="input input-bordered w-full"
-          />
-        </form>
+        {chatState === "delete" ? (
+          <div
+            className="btn"
+            onClick={() =>
+              setMessages(
+                messages.filter(
+                  (message) => !checkedMessages.includes(message.id)
+                )
+              )
+            }
+          >
+            Hapus
+          </div>
+        ) : (
+          <form onSubmit={sendMessage} className="w-full">
+            <input
+              type="text"
+              placeholder="Send message..."
+              value={input}
+              onChange={handleInputChange}
+              className="input input-bordered w-full"
+            />
+          </form>
+        )}
       </div>
     </div>
   );
