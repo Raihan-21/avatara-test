@@ -16,7 +16,10 @@ const Navbar = () => {
           <div>Leydroid</div>
         </div>
       </div>
-      <BsThreeDotsVertical />
+      <div className="dropdown">
+        <BsThreeDotsVertical />
+        <div className="menu dropdown-content">Hapus</div>
+      </div>
     </div>
   );
 };
