@@ -11,6 +11,7 @@ import { FiThumbsUp } from "react-icons/fi";
 import { FiThumbsDown } from "react-icons/fi";
 import { useChat } from "ai/react";
 import { ChatContext } from "../components/Provider";
+import { GoTrash } from "react-icons/go";
 
 interface Message {
   role: string;
@@ -42,6 +43,13 @@ const Chat = () => {
 
   const [messageData, setMessageData] = useState<any>([]);
   const [checkedMessages, setCheckedMessages] = useState<string[]>([]);
+  const [chatData, setChatData] = useState<MessageState[]>([]);
+
+  const { chatState } = useContext(ChatContext);
+
+  const checkAllMessage = () => {
+    setCheckedMessages(messages.map((message) => message.id));
+  };
 
   const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     // const savedChats = localStorage.getItem("chat");
@@ -54,8 +62,14 @@ const Chat = () => {
     handleSubmit(e);
   };
 
+  const deleteMessage = () => {
+    setMessages(
+      messages.filter((message) => !checkedMessages.includes(message.id))
+    );
+    setCheckedMessages([]);
+  };
+
   // const [input, setInput] = useState<string>("");
-  const [chatData, setChatData] = useState<MessageState[]>([]);
 
   // const sendMessage = async (e: any) => {
   //   e.preventDefault();
@@ -100,33 +114,23 @@ const Chat = () => {
 
   //   const
 
-  const { chatState } = useContext(ChatContext);
+  // useEffect(() => {
+  //   const chatStorage = localStorage.getItem("chat");
+  //   if (chatStorage) setChatData(JSON.parse(chatStorage));
+  // }, []);
 
   useEffect(() => {
-    const chatStorage = localStorage.getItem("chat");
-    if (chatStorage) setChatData(JSON.parse(chatStorage));
-  }, []);
-
-  useEffect(() => {
-    // const savedChats = localStorage.getItem("chat");
-    // let parsedChats = [];
-    // if (savedChats) parsedChats = JSON.parse(savedChats);
-
-    // parsedChats = [...parsedChats, ...messages];
     localStorage.setItem("chat", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
-    console.log(checkedMessages);
-  }, [checkedMessages]);
-
+    setCheckedMessages([]);
+  }, [chatState]);
   return (
     <div className="bg-white min-h-[calc(100vh-64px)] pt-4 relative">
       <div className="px-4 ">
         <div className="flex justify-center">
-          <div className="rounded-md bg-secondary p-2 mb-10">
-            Today {chatState}
-          </div>
+          <div className="rounded-md bg-secondary p-2 mb-10">Today</div>
         </div>
         <div className="space-y-2">
           {messages.length > 0 &&
@@ -145,6 +149,7 @@ const Chat = () => {
                         type="checkbox"
                         className="checkbox"
                         value={chat.id}
+                        checked={checkedMessages.some((id) => id === chat.id)}
                         onChange={(e) => {
                           const alreadyChecked = checkedMessages.find(
                             (id) => id === e.target.value
@@ -167,14 +172,14 @@ const Chat = () => {
                   )}
                 </div>
               ) : (
-                <div className="chat chat-start items-end" key={i}>
-                  {" "}
+                <div className="chat chat-start flex items-end" key={i}>
                   {chatState === "delete" && (
                     <div>
                       <input
                         type="checkbox"
                         className="checkbox"
                         value={chat.id}
+                        checked={checkedMessages.some((id) => id === chat.id)}
                         onChange={(e) => {
                           const alreadyChecked = checkedMessages.find(
                             (id) => id === e.target.value
@@ -195,6 +200,9 @@ const Chat = () => {
                       />
                     </div>
                   )}
+                  <div className="chat-image avatar">
+                    <img src="/avatar.png" alt="" />
+                  </div>
                   <div className="chat-bubble bg-primary text-white">
                     <span>{chat.content}</span>{" "}
                     <span className="text-[10px]">
@@ -242,17 +250,32 @@ const Chat = () => {
       </div>
       <div className="sticky bottom-0 bg-white flex justify-center w-full p-5">
         {chatState === "delete" ? (
-          <div
-            className="btn"
-            onClick={() =>
-              setMessages(
-                messages.filter(
-                  (message) => !checkedMessages.includes(message.id)
-                )
-              )
-            }
-          >
-            Hapus
+          <div className="flex justify-between items-center w-full">
+            <div className="flex items-center gap-x-1">
+              <div>{checkedMessages.length} Terpilih </div>
+              <span>|</span>
+              <div
+                className="cursor-pointer"
+                role="button"
+                onClick={checkAllMessage}
+              >
+                Pilih semua
+              </div>
+            </div>
+            <button
+              className={`cursor-pointer text-orange ${
+                !checkedMessages.length ? "text-opacity-50" : ""
+              } flex items-center gap-x-1`}
+              disabled={!checkedMessages.length}
+              onClick={() =>
+                (
+                  document.querySelector("#modal--delete")! as HTMLFormElement
+                ).showModal()
+              }
+            >
+              <GoTrash />
+              Hapus
+            </button>
           </div>
         ) : (
           <form onSubmit={sendMessage} className="w-full">
@@ -266,6 +289,28 @@ const Chat = () => {
           </form>
         )}
       </div>
+      <dialog id="modal--delete" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold mb-2">Hapus Chat</h3>
+          <p>
+            Kamu akan menghapus chat ini, chat yang telah dihapus tidak dapat
+            dipulihkan
+          </p>
+          <div className="modal-action">
+            <form method="dialog" className="w-full">
+              <div className="flex flex-col gap-y-5 w-full">
+                <button
+                  className="btn bg-second-orange text-white rounded-full"
+                  onClick={deleteMessage}
+                >
+                  Hapus Sekarang
+                </button>
+                <button className="cursor-pointer">Kembali</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };
