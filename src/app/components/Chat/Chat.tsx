@@ -9,9 +9,12 @@ import { MdOutlineThumbUp } from "react-icons/md";
 import { MdThumbUp } from "react-icons/md";
 import { MdOutlineThumbDown } from "react-icons/md";
 import { MdThumbDown } from "react-icons/md";
+import { GoTrash } from "react-icons/go";
+import { IoCloseOutline } from "react-icons/io5";
+
 import { Message, useChat } from "ai/react";
 import { ChatContext } from "../Provider";
-import { GoTrash } from "react-icons/go";
+
 import UserChatBubble from "./UserChatBubble";
 import BotChatBubble from "./BotChatBubble";
 
@@ -301,7 +304,9 @@ const Chat = () => {
           <div className="flex justify-between mb-5">
             <h3 className="font-bold mb-2">Rating</h3>
             <form method="dialog">
-              <button>X</button>
+              <button>
+                <IoCloseOutline size={25} />
+              </button>
             </form>
           </div>
           <div className="flex flex-col items-center mb-5">
