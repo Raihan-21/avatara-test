@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
-import { MessageState, Rating } from "../types/data";
-import moment from "moment";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Rating } from "../types/data";
 
 // ICONS
-import { IoReload } from "react-icons/io5";
 import { MdContentCopy } from "react-icons/md";
 import { MdOutlineThumbUp } from "react-icons/md";
 import { MdThumbUp } from "react-icons/md";
@@ -14,13 +12,17 @@ import { MdThumbDown } from "react-icons/md";
 import { Message, useChat } from "ai/react";
 import { ChatContext } from "../components/Provider";
 import { GoTrash } from "react-icons/go";
+import UserChatBubble from "./components/UserChatBubble";
+import BotChatBubble from "./components/BotChatBubble";
 
 const Chat = () => {
   const getChatData = () => {
-    const savedChats = localStorage.getItem("chat");
-    let parsedChats = [];
-    if (savedChats) parsedChats = JSON.parse(savedChats);
-    return parsedChats;
+    if (localStorage) {
+      const savedChats = localStorage.getItem("chat");
+      let parsedChats = [];
+      if (savedChats) parsedChats = JSON.parse(savedChats);
+      return parsedChats;
+    }
   };
 
   const { messages, setMessages, input, handleInputChange, handleSubmit } =
@@ -45,13 +47,6 @@ const Chat = () => {
   };
 
   const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
-    // const savedChats = localStorage.getItem("chat");
-    // let parsedChats = [];
-    // if (savedChats) parsedChats = JSON.parse(savedChats);
-
-    // parsedChats = [...parsedChats, ...messages];
-    // localStorage.setItem("chat", JSON.stringify(parsedChats));
-
     handleSubmit(e);
   };
 
@@ -73,6 +68,59 @@ const Chat = () => {
     };
     setRatings((prevState) => [...prevState, rating]);
   };
+
+  const BotMessageActions = ({ chat }: { chat: Message }) => (
+    <div className="flex justify-end items-center w-full gap-x-2 mt-5">
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(chat.content);
+          setShowToast(true);
+          setTimeout(() => {
+            setShowToast(false);
+          }, 2000);
+        }}
+      >
+        <MdContentCopy />
+      </button>
+
+      <button
+        disabled={ratings.some((rating) => rating.messageId === chat.id)}
+        onClick={() => {
+          setReviewedMessage(chat);
+          setSelectedRatingType("like");
+          (
+            document.querySelector("#modal--rating")! as HTMLFormElement
+          ).showModal();
+        }}
+      >
+        {ratings.some(
+          (rating) => rating.messageId === chat.id && rating.type === "like"
+        ) ? (
+          <MdThumbUp />
+        ) : (
+          <MdOutlineThumbUp />
+        )}
+      </button>
+      <button
+        disabled={ratings.some((rating) => rating.messageId === chat.id)}
+        onClick={() => {
+          setReviewedMessage(chat);
+          setSelectedRatingType("dislike");
+          (
+            document.querySelector("#modal--rating")! as HTMLFormElement
+          ).showModal();
+        }}
+      >
+        {ratings.some(
+          (rating) => rating.messageId === chat.id && rating.type === "dislike"
+        ) ? (
+          <MdThumbDown />
+        ) : (
+          <MdOutlineThumbDown />
+        )}
+      </button>
+    </div>
+  );
 
   useEffect(() => {
     const savedRatings = localStorage.getItem("ratings");
@@ -107,12 +155,16 @@ const Chat = () => {
             messages.map((chat, i) =>
               chat.role === "user" ? (
                 <div className="chat chat-end items-end" key={i}>
-                  <div className="chat-bubble bg-secondary text-black">
+                  <UserChatBubble
+                    text={chat.content}
+                    sentAt={chat.createdAt!}
+                  />
+                  {/* <div className="chat-bubble bg-secondary text-black">
                     <span>{chat.content}</span>{" "}
                     <span className="text-[10px]">
                       {moment(chat.createdAt).format("HH:mm")}
                     </span>
-                  </div>
+                  </div> */}
                   {chatState === "delete" && (
                     <div>
                       <input
@@ -173,107 +225,14 @@ const Chat = () => {
                   <div className="chat-image avatar">
                     <img src="/avatar.png" alt="" />
                   </div>
-                  <div className="chat-bubble bg-primary text-white">
-                    <span>{chat.content}</span>{" "}
-                    <span className="text-[10px]">
-                      {moment(chat.createdAt).format("HH:mm")}
-                    </span>{" "}
-                    <div className="flex justify-end items-center w-full gap-x-2 mt-5">
-                      {/* <IoReload /> */}
-
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(chat.content);
-                          setShowToast(true);
-                          setTimeout(() => {
-                            setShowToast(false);
-                          }, 2000);
-                        }}
-                      >
-                        <MdContentCopy />
-                      </button>
-
-                      <button
-                        disabled={ratings.some(
-                          (rating) => rating.messageId === chat.id
-                        )}
-                        onClick={() => {
-                          setReviewedMessage(chat);
-                          setSelectedRatingType("like");
-                          (
-                            document.querySelector(
-                              "#modal--rating"
-                            )! as HTMLFormElement
-                          ).showModal();
-                        }}
-                      >
-                        {ratings.some(
-                          (rating) =>
-                            rating.messageId === chat.id &&
-                            rating.type === "like"
-                        ) ? (
-                          <MdThumbUp />
-                        ) : (
-                          <MdOutlineThumbUp />
-                        )}
-                      </button>
-                      <button
-                        disabled={ratings.some(
-                          (rating) => rating.messageId === chat.id
-                        )}
-                        onClick={() => {
-                          setReviewedMessage(chat);
-                          setSelectedRatingType("dislike");
-                          (
-                            document.querySelector(
-                              "#modal--rating"
-                            )! as HTMLFormElement
-                          ).showModal();
-                        }}
-                      >
-                        {ratings.some(
-                          (rating) =>
-                            rating.messageId === chat.id &&
-                            rating.type === "dislike"
-                        ) ? (
-                          <MdThumbDown />
-                        ) : (
-                          <MdOutlineThumbDown />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                  <BotChatBubble
+                    text={chat.content}
+                    sentAt={chat.createdAt!}
+                    actions={<BotMessageActions chat={chat} />}
+                  />
                 </div>
               )
             )}
-          {/* {chatData.length > 0 &&
-            chatData.map((chat, i) =>
-              chat.createdBy === "user" ? (
-                <div className="chat chat-end" key={i}>
-                  <div className="chat-bubble bg-secondary text-black">
-                    <span>{chat.message}</span>{" "}
-                    <span className="text-[10px]">
-                      {moment(chat.createdAt).format("HH:mm")}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="chat chat-start" key={i}>
-                  <div className="chat-bubble bg-primary text-white">
-                    <span>{chat.message}</span>{" "}
-                    <span className="text-[10px]">
-                      {moment(chat.createdAt).format("HH:mm")}
-                    </span>{" "}
-                    <div className="flex justify-end w-full gap-x-2 mt-5">
-                      <IoReload />
-                      <MdContentCopy />
-                      <FiThumbsUp />
-                      <FiThumbsDown />
-                    </div>
-                  </div>
-                </div>
-              )
-            )} */}
         </div>
       </div>
       <div
@@ -391,28 +350,6 @@ const Chat = () => {
                 >
                   Kirim
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </dialog>
-      <dialog id="modal--dislike" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold mb-2">Hapus Chat</h3>
-          <p>
-            Kamu akan menghapus chat ini, chat yang telah dihapus tidak dapat
-            dipulihkan
-          </p>
-          <div className="modal-action">
-            <form method="dialog" className="w-full">
-              <div className="flex flex-col gap-y-5 w-full">
-                <button
-                  className="btn bg-second-orange text-white rounded-full"
-                  onClick={deleteMessage}
-                >
-                  Hapus Sekarang
-                </button>
-                <button className="cursor-pointer">Kembali</button>
               </div>
             </form>
           </div>

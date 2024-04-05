@@ -1,10 +1,3 @@
-interface MessageState {
-  id: number;
-  createdAt: Date;
-  createdBy: string;
-  content: string;
-}
-
 interface Rating {
   id: number;
   messageId: string;
@@ -13,4 +6,4 @@ interface Rating {
   content: string;
 }
 
-export type { MessageState, Rating };
+export type { Rating };
