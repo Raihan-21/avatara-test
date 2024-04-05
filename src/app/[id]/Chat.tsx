@@ -36,7 +36,7 @@ const Chat = () => {
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [reviewedMessage, setReviewedMessage] = useState<Message>();
 
-  const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [showToast, setShowToast] = useState<boolean>(false);
 
   const { chatState } = useContext(ChatContext);
 
@@ -180,22 +180,19 @@ const Chat = () => {
                     </span>{" "}
                     <div className="flex justify-end items-center w-full gap-x-2 mt-5">
                       {/* <IoReload /> */}
-                      <div
-                        className={`tooltip ${isCopied && "tooltip-open"}`}
-                        data-tip="Copied to clipboard"
+
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(chat.content);
+                          setShowToast(true);
+                          setTimeout(() => {
+                            setShowToast(false);
+                          }, 2000);
+                        }}
                       >
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(chat.content);
-                            setIsCopied(true);
-                            setTimeout(() => {
-                              setIsCopied(false);
-                            }, 1000);
-                          }}
-                        >
-                          <MdContentCopy />
-                        </button>
-                      </div>
+                        <MdContentCopy />
+                      </button>
+
                       <button
                         disabled={ratings.some(
                           (rating) => rating.messageId === chat.id
@@ -421,6 +418,11 @@ const Chat = () => {
           </div>
         </div>
       </dialog>
+      {showToast && (
+        <div className="toast toast-center">
+          <div className="alert bg-black text-white">Copied to clipboard</div>
+        </div>
+      )}
     </div>
   );
 };
