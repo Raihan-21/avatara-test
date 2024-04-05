@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Rating } from "../types/data";
+import React, { useContext, useEffect, useState } from "react";
+import { Rating } from "../../types/data";
 
 // ICONS
 import { MdContentCopy } from "react-icons/md";
@@ -10,10 +10,10 @@ import { MdThumbUp } from "react-icons/md";
 import { MdOutlineThumbDown } from "react-icons/md";
 import { MdThumbDown } from "react-icons/md";
 import { Message, useChat } from "ai/react";
-import { ChatContext } from "../components/Provider";
+import { ChatContext } from "../Provider";
 import { GoTrash } from "react-icons/go";
-import UserChatBubble from "./components/UserChatBubble";
-import BotChatBubble from "./components/BotChatBubble";
+import UserChatBubble from "./UserChatBubble";
+import BotChatBubble from "./BotChatBubble";
 
 const Chat = () => {
   const getChatData = () => {
@@ -58,7 +58,6 @@ const Chat = () => {
   };
 
   const submitRating = () => {
-    console.log("tes");
     const rating = {
       id: Math.floor(Math.random() * 100 + 1),
       createdAt: new Date(),
@@ -159,12 +158,6 @@ const Chat = () => {
                     text={chat.content}
                     sentAt={chat.createdAt!}
                   />
-                  {/* <div className="chat-bubble bg-secondary text-black">
-                    <span>{chat.content}</span>{" "}
-                    <span className="text-[10px]">
-                      {moment(chat.createdAt).format("HH:mm")}
-                    </span>
-                  </div> */}
                   {chatState === "delete" && (
                     <div>
                       <input
@@ -282,7 +275,7 @@ const Chat = () => {
       </div>
       <dialog id="modal--delete" className="modal">
         <div className="modal-box">
-          <h3 className="font-bold mb-2">Hapus Chat</h3>
+          <h3 className="font-bold mb-5">Hapus Chat</h3>
           <p>
             Kamu akan menghapus chat ini, chat yang telah dihapus tidak dapat
             dipulihkan
@@ -335,7 +328,7 @@ const Chat = () => {
           <textarea
             name=""
             id=""
-            className="textarea w-full"
+            className="textarea w-full bg-gray-100"
             placeholder="Berikan tanggapanmu"
             value={ratingInput}
             onChange={(e) => setRatingInput(e.target.value)}

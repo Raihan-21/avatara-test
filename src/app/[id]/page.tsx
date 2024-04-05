@@ -1,7 +1,7 @@
 // "use client";
 
 import React, { useEffect, useState } from "react";
-import Chat from "./Chat";
+import Chat from "../components/Chat/Chat";
 
 export const runtime = "edge";
 
