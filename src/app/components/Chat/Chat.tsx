@@ -122,6 +122,7 @@ const Chat = () => {
   );
 
   useEffect(() => {
+    // Set ratings state from localstorage
     const savedRatings = localStorage.getItem("ratings");
     let parsedRatings = [];
     if (savedRatings) parsedRatings = JSON.parse(savedRatings);

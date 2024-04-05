@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactElement, ReactNode, createContext, useState } from "react";
+import React, { ReactNode, createContext, useState } from "react";
 
 export const ChatContext = createContext<any>({});
 const Provider = ({ children }: { children: ReactNode }) => {
