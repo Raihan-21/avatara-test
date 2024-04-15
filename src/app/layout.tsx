@@ -18,6 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <title>Avatara Chatbot</title>
+      </head>
       <body className={inter.className}>
         <Provider>
           <Navbar variant="detail" />
